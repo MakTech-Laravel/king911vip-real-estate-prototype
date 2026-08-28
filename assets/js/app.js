@@ -46,9 +46,24 @@
     );
   }
 
+  function Icon({ name, size = 20 }) {
+    const paths = {
+      home: 'M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+      search: 'm21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z',
+      plus: 'M12 5v14M5 12h14', heart: 'M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z',
+      user: 'M20 21a8 8 0 0 0-16 0m8-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z',
+      menu: 'M4 7h16M4 12h16M4 17h16', building: 'M4 21V5l8-3v19m0-13h8v13M8 8h1m-1 4h1m-1 4h1m7-4h1m-1 4h1',
+      shield: 'M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Zm-3-11 2 2 4-4', grid: 'M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 0h6v6h-6z',
+      login: 'M10 17l5-5-5-5m5 5H3m11-9h6a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-6'
+    };
+    return h('svg',{width:size,height:size,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:'1.8',strokeLinecap:'round',strokeLinejoin:'round','aria-hidden':'true'},h('path',{d:paths[name]||paths.grid}));
+  }
+
   function Header({ locale, setLocale, path }) {
     const t = copy[locale];
-    return h('header', { className: 'site-header' }, h('div', { className: 'container header-row' },
+    const [open,setOpen]=React.useState(false);
+    const close=()=>setOpen(false);
+    return h(React.Fragment,null,h('header', { className: 'site-header' }, h('div', { className: 'container header-row' },
       h(Logo),
       h('nav', { className: 'main-nav', 'aria-label': 'Primary navigation' },
         h('a', { href: '#/home', className: `nav-link ${path === '/home' ? 'active' : ''}` }, t.home),
@@ -58,10 +73,21 @@
       ),
       h('div', { className: 'header-actions' },
         h('button', { className: 'lang-btn', onClick: () => setLocale(locale === 'en' ? 'ar' : 'en'), 'aria-label': 'Switch language' }, t.language),
-        h('a', { className: 'role-btn', href: '#/office-dashboard' }, t.dashboard),
-        h('button', { className: 'icon-btn mobile-menu', 'aria-label': 'Open menu' }, '☰')
+        h('a', { className: 'header-login', href: '#/login' }, L(locale,'Sign in','تسجيل الدخول')),
+        h('a', { className: 'role-btn', href: '#/roles' }, L(locale,'Dashboards','لوحات التحكم'))
       )
-    ));
+    )),open&&h(React.Fragment,null,h('button',{className:'public-menu-scrim','aria-label':'Close menu',onClick:close}),h('aside',{className:'public-menu'},
+      h('div',{className:'public-menu-head'},h(Logo),h('button',{className:'menu-close','aria-label':'Close menu',onClick:close},'×')),
+      h('nav',null,
+        [['/home','home',t.home],['/search','search',t.properties],['/office/o1','building',t.offices],['/account/saved','heart',t.saved]].map(x=>h('a',{href:`#${x[0]}`,onClick:close,key:x[0]},h(Icon,{name:x[1]}),h('span',null,x[2])))),
+      h('p',{className:'menu-label'},L(locale,'Choose your workspace','اختر مساحة العمل')),
+      h('div',{className:'menu-role-list'},
+        h('a',{href:'#/user-dashboard',onClick:close},h(Icon,{name:'user'}),h('span',null,h('strong',null,L(locale,'Property seeker','باحث عن عقار')),h('small',null,L(locale,'Saved homes and inquiries','المحفوظات والاستفسارات')))),
+        h('a',{href:'#/office-dashboard',onClick:close},h(Icon,{name:'building'}),h('span',null,h('strong',null,L(locale,'Real estate office','مكتب عقاري')),h('small',null,L(locale,'Listings, points and leads','الإعلانات والنقاط والعملاء')))),
+        h('a',{href:'#/admin',onClick:close},h(Icon,{name:'shield'}),h('span',null,h('strong',null,L(locale,'Platform admin','مدير المنصة')),h('small',null,L(locale,'Approvals and marketplace control','الموافقات وإدارة السوق'))))
+      ),
+      h('div',{className:'menu-auth'},h('a',{className:'btn',href:'#/login',onClick:close},L(locale,'Sign in','تسجيل الدخول')),h('a',{className:'btn btn-primary',href:'#/register',onClick:close},L(locale,'Create account','إنشاء حساب')))
+    )));
   }
 
   function HeroSearch({ locale }) {
@@ -152,19 +178,20 @@
     return h('footer', { className: 'site-footer' }, h('div', { className: 'container footer-grid' },
       h('div', null, h(Logo), h('p', { style: { maxWidth: '350px', lineHeight: 1.7 } }, t.footerCopy)),
       h('div', null, h('h4', null, t.market), h('a', { href: '#/search' }, t.properties), h('a', { href: '#/account/saved' }, t.saved), h('a', { href: '#/office/o1' }, t.offices)),
-      h('div', null, h('h4', null, t.company), h('a', { href: '#/office-dashboard' }, t.dashboard), h('a', { href: '#/office-dashboard/points' }, 'Points'), h('a', { href: '#/admin' }, 'Admin demo')),
-      h('div', null, h('h4', null, t.legal), h('a', { href: '#/home' }, 'Client presentation'), h('a', { href: '#/home' }, 'Static experience'), h('a', { href: '#/home' }, '© 2026 DAR.KW'))
+      h('div', null, h('h4', null, t.company), h('a', { href: '#/roles' }, L(locale,'All dashboards','كل لوحات التحكم')), h('a', { href: '#/office-dashboard' }, t.dashboard), h('a', { href: '#/admin' }, L(locale,'Admin dashboard','لوحة الإدارة'))),
+      h('div', null, h('h4', null, L(locale,'Account','الحساب')), h('a', { href: '#/login' }, L(locale,'Sign in','تسجيل الدخول')), h('a', { href: '#/register' }, L(locale,'Create account','إنشاء حساب')), h('a', { href: '#/user-dashboard' }, L(locale,'Seeker dashboard','لوحة الباحث')))
     ));
   }
 
-  function MobileNav({ locale }) {
+  function MobileNav({ locale, path }) {
     const t = copy[locale];
+    const item=(href,name,label,match)=>h('a',{href:`#${href}`,className:match?'active':'',key:href},h(Icon,{name,size:19}),h('span',null,label));
     return h('nav', { className: 'mobile-nav', 'aria-label': 'Mobile navigation' },
-      h('a', { href: '#/home', className: 'active' }, h('span', null, '⌂'), t.home),
-      h('a', { href: '#/search' }, h('span', null, '⌕'), t.properties),
-      h('a', { href: '#/office-dashboard/properties/new' }, h('span', null, '＋'), locale === 'ar' ? 'أضف' : 'List'),
-      h('a', { href: '#/account/saved' }, h('span', null, '♡'), t.saved),
-      h('a', { href: '#/office-dashboard' }, h('span', null, '◉'), locale === 'ar' ? 'المكتب' : 'Office')
+      item('/home','home',t.home,path==='/home'||path==='/'),
+      item('/search','search',t.properties,path.startsWith('/search')||path.startsWith('/property')),
+      item('/office/o1','building',t.offices,path.startsWith('/office/')),
+      item('/account/saved','heart',t.saved,path.startsWith('/account')),
+      item('/roles','grid',locale==='ar'?'الحساب':'Account',path==='/roles'||path==='/user-dashboard')
     );
   }
 
@@ -486,6 +513,42 @@
     return h(React.Fragment,null,h(WorkspaceHeading,{locale,title:L(locale,'Marketplace analytics','تحليلات السوق'),subtitle:L(locale,'Understand supply, demand and office performance.','افهم العرض والطلب وأداء المكاتب.')}),h('div',{className:'metric-grid'},h(MetricCard,{label:L(locale,'Searches','عمليات البحث'),value:'84.2K',delta:'+24.1%'}),h(MetricCard,{label:L(locale,'Property views','مشاهدات العقارات'),value:'162K',delta:'+18.7%'}),h(MetricCard,{label:L(locale,'Inquiry rate','معدل الاستفسار'),value:'6.8%',delta:'+1.2 pts'}),h(MetricCard,{label:L(locale,'Office response','استجابة المكاتب'),value:'92%',delta:'Under 2 hours'})),h('div',{className:'dashboard-grid'},h('section',{className:'panel'},h('div',{className:'panel-head'},h('h3',null,L(locale,'Demand by month','الطلب حسب الشهر'))),h(MiniChart,{values:[42,55,48,73,68,96]})),h('section',{className:'panel'},h('div',{className:'panel-head'},h('h3',null,L(locale,'Top locations','أهم المناطق'))),locations.slice(0,4).map(l=>h('div',{className:'cost-row',key:l.id},h('span',null,text(l.name,locale)),h('strong',null,l.count))))));
   }
 
+  function RoleHub({ locale }) {
+    const roles=[
+      {icon:'user',title:L(locale,'Property seeker','باحث عن عقار'),copy:L(locale,'Manage saved properties, inquiries and recommendations.','أدر العقارات المحفوظة والاستفسارات والتوصيات.'),href:'#/user-dashboard',cta:L(locale,'Open seeker dashboard','فتح لوحة الباحث')},
+      {icon:'building',title:L(locale,'Real estate office','مكتب عقاري'),copy:L(locale,'Publish listings, buy points and manage property inquiries.','انشر الإعلانات واشترِ النقاط وأدر الاستفسارات.'),href:'#/office-dashboard',cta:L(locale,'Open office dashboard','فتح لوحة المكتب')},
+      {icon:'shield',title:L(locale,'Platform administrator','مدير المنصة'),copy:L(locale,'Approve offices and listings, monitor growth and quality.','اعتمد المكاتب والإعلانات وراقب النمو والجودة.'),href:'#/admin',cta:L(locale,'Open admin dashboard','فتح لوحة الإدارة')}
+    ];
+    return h(React.Fragment,null,h(PageHero,{locale,title:L(locale,'One marketplace. Three focused experiences.','سوق واحد. ثلاث تجارب متخصصة.'),subtitle:L(locale,'Choose a role to demonstrate the complete DAR.KW product story.','اختر دوراً لعرض قصة منتج دار الكويت كاملة.')}),h('section',{className:'page-shell role-hub'},h('div',{className:'container role-grid'},roles.map((r,i)=>h('article',{className:`role-card role-${i}`,key:r.href},h('span',{className:'role-icon'},h(Icon,{name:r.icon,size:28})),h('p',{className:'eyebrow'},i===0?L(locale,'For customers','للعملاء'):i===1?L(locale,'For partners','للشركاء'):L(locale,'For operations','للإدارة')),h('h2',null,r.title),h('p',null,r.copy),h('a',{className:'btn btn-primary',href:r.href},r.cta))))));
+  }
+
+  function UserDashboard({ locale, favorites, inquiries, allProperties, toggleFavorite }) {
+    const saved=allProperties.filter(p=>favorites.includes(p.id));
+    const recommended=allProperties.filter(p=>p.featured).slice(0,3);
+    return h('section',{className:'seeker-dashboard'},h('div',{className:'container'},
+      h('div',{className:'seeker-top'},h('div',null,h('p',{className:'eyebrow'},L(locale,'Seeker workspace','مساحة الباحث')),h('h1',null,L(locale,'Welcome back, Noura.','مرحباً بعودتك، نورة.')),h('p',null,L(locale,'Your saved homes, inquiries and next best matches in one place.','عقاراتك المحفوظة واستفساراتك وأفضل الخيارات في مكان واحد.'))),h('a',{className:'btn btn-primary',href:'#/search'},h(Icon,{name:'search',size:17}),L(locale,'Explore properties','استكشف العقارات'))),
+      h('div',{className:'seeker-metrics'},h(MetricCard,{label:L(locale,'Saved properties','العقارات المحفوظة'),value:saved.length,delta:L(locale,'Your shortlist','قائمتك المختصرة')}),h(MetricCard,{label:L(locale,'Active inquiries','الاستفسارات النشطة'),value:inquiries.filter(i=>i.status!=='closed').length,delta:L(locale,'Direct with offices','مباشرة مع المكاتب')}),h(MetricCard,{label:L(locale,'New matches','خيارات جديدة'),value:'12',delta:L(locale,'Based on your activity','بناءً على نشاطك')})),
+      h('div',{className:'seeker-actions'},h('a',{href:'#/account/saved'},h(Icon,{name:'heart'}),h('span',null,h('strong',null,L(locale,'Saved properties','العقارات المحفوظة')),h('small',null,L(locale,'Review and compare your shortlist','راجع وقارن قائمتك')))),h('a',{href:'#/account/inquiries'},h(Icon,{name:'building'}),h('span',null,h('strong',null,L(locale,'Inquiry history','سجل الاستفسارات')),h('small',null,L(locale,'Track office responses','تابع ردود المكاتب')))),h('a',{href:'#/account/settings'},h(Icon,{name:'user'}),h('span',null,h('strong',null,L(locale,'Preferences','التفضيلات')),h('small',null,L(locale,'Language and notifications','اللغة والتنبيهات'))))),
+      h('div',{className:'section-head compact-head'},h('div',null,h('p',{className:'eyebrow'},L(locale,'Recommended for you','موصى به لك')),h('h2',null,L(locale,'Continue your search','تابع بحثك'))),h('a',{className:'text-link',href:'#/search'},L(locale,'View all','عرض الكل'))),
+      h('div',{className:'property-grid'},recommended.map(p=>h(PropertyCard,{key:p.id,property:p,locale,favorites,toggleFavorite})))
+    ));
+  }
+
+  function AuthPage({ locale, mode }) {
+    const [role,setRole]=React.useState('user');
+    const register=mode==='register';
+    const destination=role==='admin'?'#/admin':role==='office'?'#/office-dashboard':'#/user-dashboard';
+    function submit(e){e.preventDefault();location.hash=destination.slice(1);}
+    return h('section',{className:'auth-page'},h('div',{className:'auth-shell'},
+      h('div',{className:'auth-visual'},h(Logo),h('div',null,h('p',{className:'eyebrow'},L(locale,'Kuwait property, simplified','عقارات الكويت ببساطة')),h('h1',null,register?L(locale,'Join the marketplace built for every role.','انضم إلى السوق المصمم لكل دور.'):L(locale,'Welcome back to DAR.KW.','مرحباً بعودتك إلى دار الكويت.')),h('p',null,L(locale,'Explore properties, grow an office portfolio, or manage the entire marketplace from one refined product.','استكشف العقارات أو نمِّ محفظة مكتبك أو أدر السوق بالكامل من منتج واحد.')))),
+      h('div',{className:'auth-card'},h('a',{className:'auth-back',href:'#/home'},'← ',L(locale,'Back to marketplace','العودة إلى السوق')),h('h2',null,register?L(locale,'Create your account','إنشاء حساب'):L(locale,'Sign in','تسجيل الدخول')),h('p',null,register?L(locale,'Choose your role to start the right experience.','اختر دورك لبدء التجربة المناسبة.'):L(locale,'Use any demo details—the prototype does not authenticate.','استخدم أي بيانات تجريبية—النموذج لا يسجل دخولاً حقيقياً.')),
+        h('div',{className:'auth-role-tabs'},[['user',L(locale,'Seeker','باحث'), 'user'],['office',L(locale,'Office','مكتب'),'building'],['admin',L(locale,'Admin','إدارة'),'shield']].map(x=>h('button',{type:'button',className:role===x[0]?'active':'',onClick:()=>setRole(x[0]),key:x[0]},h(Icon,{name:x[2],size:17}),x[1]))),
+        h('form',{onSubmit:submit},register&&h('div',{className:'form-group'},h('label',null,L(locale,'Full name','الاسم الكامل')),h('input',{className:'form-control',required:true,placeholder:L(locale,'Noura Al Salem','نورة السالم')})),h('div',{className:'form-group'},h('label',null,L(locale,'Email address','البريد الإلكتروني')),h('input',{className:'form-control',type:'email',required:true,defaultValue:'demo@dar.kw'})),h('div',{className:'form-group'},h('label',null,L(locale,'Password','كلمة المرور')),h('input',{className:'form-control',type:'password',required:true,defaultValue:'prototype'})),h('button',{className:'btn btn-primary auth-submit',type:'submit'},register?L(locale,'Create account and continue','إنشاء الحساب والمتابعة'):L(locale,'Continue to dashboard','المتابعة إلى لوحة التحكم'))),
+        h('p',{className:'auth-switch'},register?L(locale,'Already have an account?','لديك حساب؟'):L(locale,'New to DAR.KW?','جديد في دار الكويت؟'),' ',h('a',{href:register?'#/login':'#/register'},register?L(locale,'Sign in','تسجيل الدخول'):L(locale,'Create account','إنشاء حساب')))
+      )
+    ));
+  }
+
   function NotFound({ locale }) { return h(React.Fragment,null,h(PageHero,{locale,title:'404',subtitle:L(locale,'This prototype route does not exist.','هذا المسار غير موجود في النموذج.')}),h('section',{className:'page-shell'},h('div',{className:'container'},h(EmptyState,{locale,title:L(locale,'Page not found','الصفحة غير موجودة'),copyText:L(locale,'Return to the marketplace and continue exploring.','عد إلى السوق وتابع الاستكشاف.'),actionHref:'#/home',actionLabel:L(locale,'Back home','العودة للرئيسية')})))); }
 
   function App() {
@@ -540,8 +603,12 @@
       else if(path.startsWith('/property/')){const item=[...properties,...demo.createdListings].find(x=>x.id===path.split('/')[2]);content=item?h(PropertyDetail,{locale,favorites,toggleFavorite,property:item,properties:market,addInquiry}):h(NotFound,{locale});}
       else if(path.startsWith('/office/')){const office=offices.find(x=>x.id===path.split('/')[2]);content=office?h(OfficeProfile,{locale,favorites,toggleFavorite,office,allProperties:market}):h(NotFound,{locale});}
       else if(path.startsWith('/account/'))content=h(AccountPage,{path,locale,favorites,toggleFavorite,inquiries:demo.inquiries,allProperties:market,setLocale});
+      else if(path==='/roles')content=h(RoleHub,{locale});
+      else if(path==='/user-dashboard')content=h(UserDashboard,{locale,favorites,inquiries:demo.inquiries,allProperties:market,toggleFavorite});
+      else if(path==='/login'||path==='/register')content=h(AuthPage,{locale,mode:path.slice(1)});
       else content=h(NotFound,{locale});
-      page=h(React.Fragment,null,h(Header,{locale,setLocale,path}),h('main',null,content),h(Footer,{locale}),h(MobileNav,{locale,path}));
+      const authRoute=path==='/login'||path==='/register';
+      page=h(React.Fragment,null,!authRoute&&h(Header,{locale,setLocale,path}),h('main',{className:authRoute?'auth-main':'public-main'},content),!authRoute&&h(Footer,{locale}),!authRoute&&h(MobileNav,{locale,path}));
     }
     return h(React.Fragment,null,page,toast&&h('div',{className:'toast',role:'status'},h('span',null,'✓'),toast));
   }

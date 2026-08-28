@@ -11,8 +11,12 @@ The prototype loads pinned React 18 and Tailwind browser scripts from public CDN
 ## Demo roles
 
 - Marketplace: `#/home`
+- Role selector: `#/roles`
+- Property seeker dashboard: `#/user-dashboard`
 - Office workspace: `#/office-dashboard`
 - Admin workspace: `#/admin`
+- Sign in: `#/login`
+- Registration: `#/register`
 
 All content and identities are fictional. Changes are stored only in browser `localStorage` and can be restored with **Reset demo**.
 
