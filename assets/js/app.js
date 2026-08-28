@@ -54,7 +54,8 @@
       user: 'M20 21a8 8 0 0 0-16 0m8-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z',
       menu: 'M4 7h16M4 12h16M4 17h16', building: 'M4 21V5l8-3v19m0-13h8v13M8 8h1m-1 4h1m-1 4h1m7-4h1m-1 4h1',
       shield: 'M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Zm-3-11 2 2 4-4', grid: 'M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 0h6v6h-6z',
-      login: 'M10 17l5-5-5-5m5 5H3m11-9h6a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-6'
+      login: 'M10 17l5-5-5-5m5 5H3m11-9h6a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-6',
+      chat: 'M21 12a8 8 0 0 1-8 8H6l-4 3 1.4-5A9 9 0 1 1 21 12Zm-13-1h.01M12 11h.01M16 11h.01'
     };
     return h('svg',{width:size,height:size,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:'1.8',strokeLinecap:'round',strokeLinejoin:'round','aria-hidden':'true'},h('path',{d:paths[name]||paths.grid}));
   }
@@ -190,8 +191,8 @@
       item('/home','home',t.home,path==='/home'||path==='/'),
       item('/search','search',t.properties,path.startsWith('/search')||path.startsWith('/property')),
       item('/office/o1','building',t.offices,path.startsWith('/office/')),
-      item('/account/saved','heart',t.saved,path.startsWith('/account')),
-      item('/roles','grid',locale==='ar'?'الحساب':'Account',path==='/roles'||path==='/user-dashboard')
+      item('/account/saved','heart',t.saved,path==='/account/saved'),
+      item('/roles','grid',locale==='ar'?'الحساب':'Account',path==='/roles'||path==='/user-dashboard'||path.startsWith('/account/'))
     );
   }
 
@@ -309,15 +310,42 @@
     );
   }
 
+  function SeekerMessages({ locale }) {
+    const conversations=[
+      {id:'c1',office:L(locale,'Afaq Properties','آفاق العقارية'),property:L(locale,'Sea View Residence','سكن بإطلالة بحرية'),message:L(locale,'Yes, it is available. We can arrange a viewing Thursday afternoon.','نعم، العقار متاح ويمكن ترتيب معاينة مساء الخميس.'),time:'10:42',unread:2,image:'assets/images/properties/property-apartment-salmiya-01.png'},
+      {id:'c2',office:L(locale,'Maison Kuwait','ميزون الكويت'),property:L(locale,'Private Pool Retreat','فيلا بمسبح خاص'),message:L(locale,'The owner has confirmed your requested viewing time.','أكد المالك موعد المعاينة المطلوب.'),time:L(locale,'Yesterday','أمس'),unread:0,image:'assets/images/properties/property-villa-courtyard-02.png'},
+      {id:'c3',office:L(locale,'Nook Real Estate','نوك العقارية'),property:L(locale,'Skyline Business Suite','جناح أعمال بإطلالة'),message:L(locale,'I have attached the floor-plan details for your review.','أرسلت تفاصيل مخطط الطابق لمراجعتك.'),time:'Mon',unread:0,image:'assets/images/properties/property-office-reception-02.png'}
+    ];
+    const [active,setActive]=React.useState(conversations[0]);
+    return h('div',{className:'seeker-chat'},
+      h('div',{className:'seeker-chat-list'},h('div',{className:'chat-list-head'},h('div',null,h('h2',null,L(locale,'Property conversations','محادثات العقارات')),h('p',null,L(locale,'Direct messages with verified offices','رسائل مباشرة مع المكاتب الموثقة'))),h('span',{className:'unread-pill'},'2 ',L(locale,'new','جديد'))),conversations.map(c=>h('button',{className:`seeker-thread ${active.id===c.id?'active':''}`,onClick:()=>setActive(c),key:c.id},h('img',{src:c.image,alt:''}),h('span',{className:'thread-copy'},h('strong',null,c.office),h('small',null,c.property),h('em',null,c.message)),h('span',{className:'thread-side'},h('small',null,c.time),c.unread?h('b',null,c.unread):null)))),
+      h('div',{className:'seeker-conversation'},h('header',null,h('div',null,h('strong',null,active.office),h('small',null,active.property)),h('a',{href:'#/property/p1'},L(locale,'View property','عرض العقار'))),h('div',{className:'chat-messages'},h('div',{className:'chat-day'},L(locale,'Today','اليوم')),h('div',{className:'chat-bubble mine'},L(locale,'Hello, is this property available for a viewing this week?','مرحباً، هل العقار متاح للمعاينة هذا الأسبوع؟')),h('div',{className:'chat-bubble'},active.message)),h('form',{className:'chat-compose',onSubmit:e=>e.preventDefault()},h('button',{type:'button','aria-label':'Attach file'},'＋'),h('input',{placeholder:L(locale,'Write a message…','اكتب رسالة…')}),h('button',{className:'send-chat',type:'submit','aria-label':'Send message'},'➤')))
+    );
+  }
+
+  function AdminConversations({ locale }) {
+    const rows=[
+      ['#CV-1048',L(locale,'Noura Al Salem','نورة السالم'),L(locale,'Afaq Properties','آفاق العقارية'),L(locale,'Sea View Residence','سكن بإطلالة بحرية'),'2',L(locale,'Active','نشطة'),'10:42'],
+      ['#CV-1047',L(locale,'Omar Al Rashid','عمر الراشد'),L(locale,'Maison Kuwait','ميزون الكويت'),L(locale,'Private Pool Retreat','فيلا بمسبح خاص'),'6',L(locale,'Active','نشطة'),L(locale,'Yesterday','أمس')],
+      ['#CV-1042',L(locale,'Laila Hassan','ليلى حسن'),L(locale,'Nook Real Estate','نوك العقارية'),L(locale,'Skyline Business Suite','جناح أعمال بإطلالة'),'4',L(locale,'Resolved','مغلقة'),'Mon']
+    ];
+    return h(React.Fragment,null,h(WorkspaceHeading,{locale,title:L(locale,'Conversation oversight','مراقبة المحادثات'),subtitle:L(locale,'Monitor marketplace communication, response quality and reported conversations.','راقب تواصل السوق وجودة الردود والمحادثات المبلغ عنها.')}),
+      h('div',{className:'metric-grid'},h(MetricCard,{label:L(locale,'Open conversations','المحادثات المفتوحة'),value:'428',delta:'+38 this week'}),h(MetricCard,{label:L(locale,'Unread messages','رسائل غير مقروءة'),value:'76',delta:L(locale,'Across all offices','عبر جميع المكاتب')}),h(MetricCard,{label:L(locale,'Median response','متوسط الاستجابة'),value:'18 min',delta:'−6 min'}),h(MetricCard,{label:L(locale,'Reported chats','المحادثات المبلغ عنها'),value:'3',delta:L(locale,'Needs review','تحتاج مراجعة')})),
+      h('section',{className:'panel admin-chat-panel'},h('div',{className:'panel-head'},h('div',null,h('h3',null,L(locale,'Recent conversations','أحدث المحادثات')),h('p',null,L(locale,'Metadata-only oversight for this static prototype.','مراقبة بيانات المحادثات في هذا النموذج.'))),h('div',{className:'toolbar-actions'},h('input',{className:'compact-select',placeholder:L(locale,'Search conversations','بحث في المحادثات')}),h('select',{className:'compact-select'},h('option',null,L(locale,'All statuses','كل الحالات')),h('option',null,L(locale,'Reported','مبلغ عنها'))))),h('div',{className:'admin-chat-list'},rows.map((r,i)=>h('article',{className:'admin-chat-row',key:r[0]},h('div',{className:'conversation-id'},h('strong',null,r[0]),h('small',null,r[6])),h('div',null,h('small',null,L(locale,'Seeker','الباحث')),h('strong',null,r[1])),h('div',null,h('small',null,L(locale,'Office','المكتب')),h('strong',null,r[2])),h('div',null,h('small',null,L(locale,'Property','العقار')),h('strong',null,r[3])),h('div',null,h('small',null,L(locale,'Messages','الرسائل')),h('strong',null,r[4])),h('span',{className:`status-badge ${i===2?'status-contacted':'status-active'}`},r[5]),h('button',{className:'row-btn'},L(locale,'Review','مراجعة')))))));
+  }
+
   function AccountPage({ path, locale, favorites, toggleFavorite, inquiries, allProperties, setLocale }) {
-    const tabs = [['/account/saved', L(locale, 'Saved properties', 'العقارات المحفوظة')], ['/account/inquiries', L(locale, 'Inquiry history', 'سجل الاستفسارات')], ['/account/settings', L(locale, 'Settings', 'الإعدادات')]];
+    const tabs = [['/account/saved', L(locale, 'Saved properties', 'العقارات المحفوظة')], ['/account/inquiries', L(locale, 'Inquiry history', 'سجل الاستفسارات')], ['/account/messages', L(locale, 'Messages', 'الرسائل')], ['/account/settings', L(locale, 'Settings', 'الإعدادات')]];
     const savedProperties = allProperties.filter(p => favorites.includes(p.id));
+    const pageTitle=path==='/account/messages'?L(locale,'Your property conversations.','محادثاتك العقارية.'):path==='/account/inquiries'?L(locale,'Track every inquiry.','تابع كل استفسار.'):path==='/account/settings'?L(locale,'Your marketplace preferences.','تفضيلاتك في السوق.'):L(locale,'Your property shortlist.','قائمتك المختصرة من العقارات.');
+    const pageSubtitle=path==='/account/messages'?L(locale,'Chat directly with verified offices and keep every property discussion organized.','تحدث مباشرة مع المكاتب الموثقة ونظم جميع نقاشات العقارات.'):L(locale,'Keep favorites and inquiry history in one lightweight place.','احتفظ بالمفضلة وسجل الاستفسارات في مكان بسيط واحد.');
     return h(React.Fragment, null,
-      h(PageHero, { locale, title: L(locale, 'Your property shortlist.', 'قائمتك المختصرة من العقارات.'), subtitle: L(locale, 'Keep favorites and inquiry history in one lightweight place.', 'احتفظ بالمفضلة وسجل الاستفسارات في مكان بسيط واحد.') }),
+      h(PageHero, { locale, title: pageTitle, subtitle: pageSubtitle }),
       h('section', { className: 'page-shell' }, h('div', { className: 'container' },
         h('div', { className: 'account-tabs' }, tabs.map(x => h('a', { href: `#${x[0]}`, className: `account-tab ${path === x[0] ? 'active' : ''}`, key: x[0] }, x[1]))),
         path === '/account/saved' && (savedProperties.length ? h('div', { className: 'property-grid' }, savedProperties.map(p => h(PropertyCard, { key: p.id, property: p, locale, favorites, toggleFavorite }))) : h(EmptyState, { locale, title: L(locale, 'Your shortlist is empty', 'قائمتك فارغة'), copyText: L(locale, 'Save properties while browsing and they will appear here.', 'احفظ العقارات أثناء التصفح وستظهر هنا.'), actionHref: '#/search', actionLabel: L(locale, 'Explore properties', 'استكشف العقارات') })),
         path === '/account/inquiries' && h('div', { className: 'inquiry-list' }, inquiries.length ? inquiries.map(iq => { const p = allProperties.find(p => p.id === iq.propertyId) || properties[0]; return h('a', { className: 'inquiry-item', href: `#/property/${p.id}`, key: iq.id }, h('img', { src: p.image, alt: '' }), h('div', null, h('h4', null, text(p.title, locale)), h('p', null, `${L(locale, 'Sent', 'أرسل')} · ${iq.date}`)), h('span', { className: `status-badge status-${iq.status}` }, iq.status)); }) : h(EmptyState, { locale, title: L(locale, 'No inquiries yet', 'لا توجد استفسارات'), copyText: L(locale, 'Contact an office from any property page.', 'تواصل مع مكتب من أي صفحة عقار.') })),
+        path === '/account/messages' && h(SeekerMessages,{locale}),
         path === '/account/settings' && h('div', { className: 'settings-card' }, h('h2', null, L(locale, 'Profile settings', 'إعدادات الملف')), h('div', { className: 'form-grid' }, h('div', { className: 'form-group' }, h('label', null, L(locale, 'Display name', 'الاسم')), h('input', { className: 'form-control', defaultValue: 'Noura Al Salem' })), h('div', { className: 'form-group' }, h('label', null, L(locale, 'Preferred language', 'اللغة المفضلة')), h('select', { className: 'form-control', value: locale, onChange: e => setLocale(e.target.value) }, h('option', { value: 'en' }, 'English'), h('option', { value: 'ar' }, 'العربية')))), h('div', { style: { marginTop: '18px' } }, h('label', { className: 'check-chip' }, h('input', { type: 'checkbox', defaultChecked: true }), h('span', null, L(locale, 'Property update notifications', 'تنبيهات تحديث العقارات')))))
       ))
     );
@@ -332,7 +360,7 @@
       ['/office-dashboard', '◉', L(locale, 'Dashboard', 'لوحة التحكم')], ['/office-dashboard/properties', '⌂', L(locale, 'Properties', 'العقارات')], ['/office-dashboard/properties/new', '＋', L(locale, 'Add property', 'إضافة عقار')], ['/office-dashboard/points', '◆', L(locale, 'Points', 'النقاط')], ['/office-dashboard/messages', '✉', L(locale, 'Messages', 'الرسائل')], ['/office-dashboard/profile', '◎', L(locale, 'Profile', 'الملف')]
     ];
     const adminLinks = [
-      ['/admin', '◉', L(locale, 'Dashboard', 'لوحة التحكم')], ['/admin/users', '♙', L(locale, 'Users', 'المستخدمون')], ['/admin/offices', '▦', L(locale, 'Offices', 'المكاتب')], ['/admin/properties', '⌂', L(locale, 'Properties', 'العقارات')], ['/admin/categories', '◇', L(locale, 'Categories', 'الأنواع')], ['/admin/locations', '⌖', L(locale, 'Locations', 'المناطق')], ['/admin/reports', '↗', L(locale, 'Reports', 'التقارير')]
+      ['/admin', '◉', L(locale, 'Dashboard', 'لوحة التحكم')], ['/admin/users', '♙', L(locale, 'Users', 'المستخدمون')], ['/admin/offices', '▦', L(locale, 'Offices', 'المكاتب')], ['/admin/properties', '⌂', L(locale, 'Properties', 'العقارات')], ['/admin/conversations', '✉', L(locale, 'Conversations', 'المحادثات')], ['/admin/categories', '◇', L(locale, 'Categories', 'الأنواع')], ['/admin/locations', '⌖', L(locale, 'Locations', 'المناطق')], ['/admin/reports', '↗', L(locale, 'Reports', 'التقارير')]
     ];
     const links = kind === 'office' ? officeLinks : adminLinks;
     const active = (href) => href === (kind === 'office' ? '/office-dashboard' : '/admin') ? path === href : path.startsWith(href);
@@ -527,8 +555,9 @@
     const recommended=allProperties.filter(p=>p.featured).slice(0,3);
     return h('section',{className:'seeker-dashboard'},h('div',{className:'container'},
       h('div',{className:'seeker-top'},h('div',null,h('p',{className:'eyebrow'},L(locale,'Seeker workspace','مساحة الباحث')),h('h1',null,L(locale,'Welcome back, Noura.','مرحباً بعودتك، نورة.')),h('p',null,L(locale,'Your saved homes, inquiries and next best matches in one place.','عقاراتك المحفوظة واستفساراتك وأفضل الخيارات في مكان واحد.'))),h('a',{className:'btn btn-primary',href:'#/search'},h(Icon,{name:'search',size:17}),L(locale,'Explore properties','استكشف العقارات'))),
-      h('div',{className:'seeker-metrics'},h(MetricCard,{label:L(locale,'Saved properties','العقارات المحفوظة'),value:saved.length,delta:L(locale,'Your shortlist','قائمتك المختصرة')}),h(MetricCard,{label:L(locale,'Active inquiries','الاستفسارات النشطة'),value:inquiries.filter(i=>i.status!=='closed').length,delta:L(locale,'Direct with offices','مباشرة مع المكاتب')}),h(MetricCard,{label:L(locale,'New matches','خيارات جديدة'),value:'12',delta:L(locale,'Based on your activity','بناءً على نشاطك')})),
-      h('div',{className:'seeker-actions'},h('a',{href:'#/account/saved'},h(Icon,{name:'heart'}),h('span',null,h('strong',null,L(locale,'Saved properties','العقارات المحفوظة')),h('small',null,L(locale,'Review and compare your shortlist','راجع وقارن قائمتك')))),h('a',{href:'#/account/inquiries'},h(Icon,{name:'building'}),h('span',null,h('strong',null,L(locale,'Inquiry history','سجل الاستفسارات')),h('small',null,L(locale,'Track office responses','تابع ردود المكاتب')))),h('a',{href:'#/account/settings'},h(Icon,{name:'user'}),h('span',null,h('strong',null,L(locale,'Preferences','التفضيلات')),h('small',null,L(locale,'Language and notifications','اللغة والتنبيهات'))))),
+      h('div',{className:'seeker-metrics'},h(MetricCard,{label:L(locale,'Saved properties','العقارات المحفوظة'),value:saved.length,delta:L(locale,'Your shortlist','قائمتك المختصرة')}),h(MetricCard,{label:L(locale,'Active inquiries','الاستفسارات النشطة'),value:inquiries.filter(i=>i.status!=='closed').length,delta:L(locale,'Direct with offices','مباشرة مع المكاتب')}),h(MetricCard,{label:L(locale,'Unread messages','رسائل غير مقروءة'),value:'2',delta:L(locale,'From Afaq Properties','من آفاق العقارية')}),h(MetricCard,{label:L(locale,'New matches','خيارات جديدة'),value:'12',delta:L(locale,'Based on your activity','بناءً على نشاطك')})),
+      h('div',{className:'seeker-actions'},h('a',{href:'#/account/messages'},h(Icon,{name:'chat'}),h('span',null,h('strong',null,L(locale,'Messages','الرسائل')),h('small',null,L(locale,'Continue property conversations','تابع محادثات العقارات')))),h('a',{href:'#/account/saved'},h(Icon,{name:'heart'}),h('span',null,h('strong',null,L(locale,'Saved properties','العقارات المحفوظة')),h('small',null,L(locale,'Review and compare your shortlist','راجع وقارن قائمتك')))),h('a',{href:'#/account/inquiries'},h(Icon,{name:'building'}),h('span',null,h('strong',null,L(locale,'Inquiry history','سجل الاستفسارات')),h('small',null,L(locale,'Track office responses','تابع ردود المكاتب')))),h('a',{href:'#/account/settings'},h(Icon,{name:'user'}),h('span',null,h('strong',null,L(locale,'Preferences','التفضيلات')),h('small',null,L(locale,'Language and notifications','اللغة والتنبيهات'))))),
+      h('a',{className:'active-conversation-card',href:'#/account/messages'},h('img',{src:'assets/images/properties/property-apartment-salmiya-01.png',alt:''}),h('div',null,h('p',{className:'eyebrow'},L(locale,'Latest conversation','أحدث محادثة')),h('h3',null,L(locale,'Sea View Residence','سكن بإطلالة بحرية')),h('p',null,L(locale,'Afaq Properties: Yes, it is available. We can arrange a viewing Thursday afternoon.','آفاق العقارية: نعم، العقار متاح ويمكن ترتيب معاينة مساء الخميس.'))),h('span',{className:'conversation-cta'},h('b',null,'2'),L(locale,'Open chat','فتح المحادثة'),' →')),
       h('div',{className:'section-head compact-head'},h('div',null,h('p',{className:'eyebrow'},L(locale,'Recommended for you','موصى به لك')),h('h2',null,L(locale,'Continue your search','تابع بحثك'))),h('a',{className:'text-link',href:'#/search'},L(locale,'View all','عرض الكل'))),
       h('div',{className:'property-grid'},recommended.map(p=>h(PropertyCard,{key:p.id,property:p,locale,favorites,toggleFavorite})))
     ));
@@ -589,6 +618,7 @@
       let content;
       if(path==='/admin')content=h(AdminOverview,{locale,demo,approveListing:moderateListing});
       else if(path==='/admin/properties')content=h(AdminProperties,{locale,demo,approveListing:moderateListing});
+      else if(path==='/admin/conversations')content=h(AdminConversations,{locale});
       else if(path==='/admin/users')content=h(AdminUsers,{locale,demo,updateDemo});
       else if(path==='/admin/offices')content=h(AdminOffices,{locale,demo,updateDemo});
       else if(path==='/admin/categories')content=h(SimpleManager,{locale,type:'categories'});
